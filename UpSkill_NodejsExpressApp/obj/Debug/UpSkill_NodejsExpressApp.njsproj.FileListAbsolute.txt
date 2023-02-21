@@ -1,0 +1,3 @@
+C:\_Dev\_Sandbox\UpSkill_NodejsExpressApp\UpSkill_NodejsExpressApp\obj\Debug\UpSkill_NodejsExpressApp.njsproj.AssemblyReference.cache
+C:\_Dev\_Sandbox\UpSkill_NodejsExpressApp\UpSkill_NodejsExpressApp\obj\Debug\UpSkill_NodejsExpressApp.njsproj.CoreCompileInputs.cache
+C:\_Dev\_Sandbox\UpSkill_NodejsExpressApp\UpSkill_NodejsExpressApp\bin\Microsoft.NodejsTools.WebRole.dll
