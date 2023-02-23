@@ -17,14 +17,9 @@ function getCourse(id) {
     return course;
 }
 
-function addCourse(name, level) {
-    const nextID = getNextID();
+function addCourse(course) {
 
-    const course = {
-        id: nextID.id,
-        name: name,
-        level: level
-    }
+    course.id = getNextID().id;
 
     courses.push(course);
 
@@ -33,7 +28,7 @@ function addCourse(name, level) {
 
 function updateCourse(course) {
 
-    const { id, name, level } = course;  //deconstruct course object.
+    const { id, name, level } = course;  //destruct course object.
 
     const courseToUpdate = courses.find(c => c.id === parseInt(id));
 
@@ -47,7 +42,13 @@ function updateCourse(course) {
 }
 
 function deleteCourse(id) {
-    courses = courses.filter(c => c.id !== parseInt(id));
+    //courses = courses.filter(c => c.id !== parseInt(id));
+
+    const index = courses.findIndex(course => course.id === parseInt(id));
+
+    if (index !== -1) { 
+        courses.splice(index, 1);
+    }
 
     return courses;
 }

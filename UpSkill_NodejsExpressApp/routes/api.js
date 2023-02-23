@@ -6,6 +6,18 @@ const Joi = require('joi');
 const courseData = require('../modules/courses-data');
 
 
+// Validate course object via npm joi package
+function validateCourse(course) {
+
+    const schema = Joi.object({
+        id: Joi.number().required(),
+        name: Joi.string().min(3).required(),
+        level: Joi.number().required()
+    });
+
+    return schema.validate(course, { abortEarly: false });
+
+}
 
 
 /* API Home. */
@@ -43,23 +55,17 @@ router.get('/courses/:id', (req, res) => {
 
 // POST /api/courses - Adds a course
 router.post('/courses', (req, res) => {
-    const schema = Joi.object({
-        name: Joi.string().min(3).required(),
-        level: Joi.number().required()
-    });
 
-    console.log(schema);
+    const course = { id: 0, name: req.body.name, level: req.body.level };
 
-    const result = schema.validate(req.body, { abortEarly: false });
-    if (result.error) {
-        // Join all error messages and return.
-        res.status(400).send(result.error.details.map(obj => obj.message).join(',')); 
-        return;
-    }
 
-    const course = courseData.addCourse(req.body.name, req.body.level);
+    const { error } = validateCourse(course);
+    if (error) return res.status(400).send(error.details.map(obj => obj.message).join(','));  // Join all error messages and return.
 
-    res.send(course);
+
+    const newCourse = courseData.addCourse(course);
+
+    res.send(newCourse);
 });
 
 
@@ -69,24 +75,12 @@ router.put('/courses/:id', (req, res) => {
     const courseToUpdate = { id: parseInt(req.params.id), name: req.body.name, level: req.body.level };
 
     const idExists = courseData.courses.some(course => course.id === courseToUpdate.id);
-    if (!idExists) {
-        res.status(400).send("Warning: Course ID not found. Update canceled!");
-        return;
-    }
+    if (!idExists) return res.status(404).send("Warning: Course ID not found. Update canceled!");
 
 
-    const schema = Joi.object({
-        name: Joi.string().min(3).required(),
-        level: Joi.number().required()
-    });
-
-    const result = schema.validate(req.body, { abortEarly: false });
-    if (result.error) {
-        // Join all error messages and return.
-        res.status(400).send(result.error.details.map(obj => obj.message).join(','));
-        return;
-    }
-        
+    const { error } = validateCourse(courseToUpdate);
+    if (error) return res.status(400).send(error.details.map(obj => obj.message).join(',')); // Join all error messages and return.
+           
 
     const course = courseData.updateCourse(courseToUpdate);
 
@@ -98,12 +92,9 @@ router.put('/courses/:id', (req, res) => {
 router.delete('/courses/:id', (req, res) => {
 
     const idExists = courseData.courses.some(course => course.id === parseInt(req.params.id));
-    if (!idExists) {
-        res.status(400).send("Warning: Course ID not found. Delete canceled!");
-        return;
-    }
-
-
+    if (!idExists) return res.status(404).send("Warning: Course ID not found. Delete canceled!");
+       
+    
     const courses = courseData.deleteCourse(req.params.id);
 
     res.send(courses);
