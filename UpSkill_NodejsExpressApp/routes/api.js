@@ -2,53 +2,109 @@
 var express = require('express');
 var router = express.Router();
 
-const coursesAPI = require('../modules/courses-api');
+const Joi = require('joi');
+const courseData = require('../modules/courses-data');
 
 
 
 
-/* GET users listing. */
+/* API Home. */
 router.get('/', function (req, res) {
     res.send('respond with a resource');
 });
 
+
+// GET /api/courses - returns all classes.
 router.get('/courses', (req, res) => {
-    const courses = coursesAPI.getCourses();
+    const courses = courseData.getCourses();
 
     res.send(courses);
 });
 
+
+// Get Next Id.
 router.get('/coursesid', (req, res) => {
-    const nextID = coursesAPI.getNextID();
+    const nextID = courseData.getNextID();
 
     res.send(nextID);
 });
 
+
+// GET /api/courses/:id -  returns one course by ID.
 router.get('/courses/:id', (req, res) => {
 
-    const course = coursesAPI.getCourse(req.params.id);
+    const course = courseData.getCourse(req.params.id);
 
     if (!course) res.status(404).send(`The course with the id of ${req.params.id} was not found.`);
 
     res.send(course);
 });
 
+
+// POST /api/courses - Adds a course
 router.post('/courses', (req, res) => {
-    const course = coursesAPI.addCourse(req.body.name);
+    const schema = Joi.object({
+        name: Joi.string().min(3).required(),
+        level: Joi.number().required()
+    });
+
+    console.log(schema);
+
+    const result = schema.validate(req.body, { abortEarly: false });
+    if (result.error) {
+        // Join all error messages and return.
+        res.status(400).send(result.error.details.map(obj => obj.message).join(',')); 
+        return;
+    }
+
+    const course = courseData.addCourse(req.body.name, req.body.level);
 
     res.send(course);
 });
 
-router.put('/courses/', (req, res) => {
 
-    const courses = coursesAPI.updateCourse(req.body.id, req.body.name);
+// PUT /api/courses/:id -  Updates a course
+router.put('/courses/:id', (req, res) => {
 
-    res.send(courses);
+    const courseToUpdate = { id: parseInt(req.params.id), name: req.body.name, level: req.body.level };
+
+    const idExists = courseData.courses.some(course => course.id === courseToUpdate.id);
+    if (!idExists) {
+        res.status(400).send("Warning: Course ID not found. Update canceled!");
+        return;
+    }
+
+
+    const schema = Joi.object({
+        name: Joi.string().min(3).required(),
+        level: Joi.number().required()
+    });
+
+    const result = schema.validate(req.body, { abortEarly: false });
+    if (result.error) {
+        // Join all error messages and return.
+        res.status(400).send(result.error.details.map(obj => obj.message).join(','));
+        return;
+    }
+        
+
+    const course = courseData.updateCourse(courseToUpdate);
+
+    res.send(course);
 });
 
+
+// DELETE /api/courses/:id -  Deletes a course
 router.delete('/courses/:id', (req, res) => {
 
-    const courses = coursesAPI.deleteCourse(req.params.id);
+    const idExists = courseData.courses.some(course => course.id === parseInt(req.params.id));
+    if (!idExists) {
+        res.status(400).send("Warning: Course ID not found. Delete canceled!");
+        return;
+    }
+
+
+    const courses = courseData.deleteCourse(req.params.id);
 
     res.send(courses);
 });
